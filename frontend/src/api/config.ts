@@ -23,6 +23,7 @@ export const API_BASE_URL = getApiBaseUrl();
 export type ErrorType = 
   | 'NETWORK_ERROR'
   | 'NOT_FOUND'
+  | 'METHOD_NOT_ALLOWED'
   | 'BACKEND_UNAVAILABLE'
   | 'TIMEOUT'
   | 'RATE_LIMIT'
@@ -43,6 +44,14 @@ export const formatUserErrorMessage = (error: any): AppError => {
     return {
       type: 'NOT_FOUND',
       message: 'The requested API endpoint was not found (HTTP 404).',
+      technicalDetails: msg
+    };
+  }
+
+  if (msg.includes('HTTP 405') || msg.includes('405')) {
+    return {
+      type: 'METHOD_NOT_ALLOWED',
+      message: 'HTTP Method Not Allowed (HTTP 405).',
       technicalDetails: msg
     };
   }
@@ -104,6 +113,8 @@ export async function fetchWithTimeout(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const method = options.method || 'GET';
+  const startTime = Date.now();
 
   try {
     const response = await fetch(url, {
@@ -115,9 +126,15 @@ export async function fetchWithTimeout(
       }
     });
 
+    const duration = Date.now() - startTime;
+    console.log(`[HealthCheck]\nmethod: ${method}\nurl: ${url}\nstatus: ${response.status}\nduration: ${duration}ms`);
+
     if (!response.ok) {
       if (response.status === 404) {
         throw new Error(`HTTP 404: Endpoint ${endpoint} not found`);
+      }
+      if (response.status === 405) {
+        throw new Error(`HTTP 405: Method ${method} not allowed on ${endpoint}`);
       }
       if ((response.status === 502 || response.status === 503) && retriesLeft > 0) {
         console.warn(`[API Client] Received HTTP ${response.status} from ${url}. Retrying...`);
@@ -129,9 +146,11 @@ export async function fetchWithTimeout(
     return response;
   } catch (err: any) {
     clearTimeout(timeoutId);
-    if (retriesLeft > 0 && !err.message.includes('404')) {
+    const duration = Date.now() - startTime;
+    console.warn(`[HealthCheck]\nmethod: ${method}\nurl: ${url}\nstatus: FAILED\nduration: ${duration}ms\nerror: ${err.message}`);
+
+    if (retriesLeft > 0 && !err.message.includes('404') && !err.message.includes('405')) {
       const delay = (3 - retriesLeft) * 2000;
-      console.warn(`[API Client] Request to ${url} failed (${err.message}). Retrying in ${delay / 1000}s...`);
       await new Promise(res => setTimeout(res, delay));
       return fetchWithTimeout(endpoint, options, timeoutMs, retriesLeft - 1);
     }
