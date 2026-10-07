@@ -1,10 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
-import os
 import json
-from app.database import models, db
 from app.services.ml_service import ml_service
 from services.llm_service import llm_service
 
@@ -33,29 +30,21 @@ def predict_fraud_manual(request: ManualClaimRequest):
     data = request.model_dump()
     evaluation = ml_service.predict_manual(data)
     
-    # 2. Run LLM Explanation
+    # 2. Run LLM Explanation via Multi-LLM Router
     explanation = f"Risk Score {evaluation['risk_score']}/100 ({evaluation['risk_level']} Risk). Model evaluation identified key indicators: {', '.join(evaluation['insights'][:2])}."
     
     try:
-        # If NVIDIA API is configured, use it for generating concise explanation
-        if os.environ.get("NVIDIA_API_KEY"):
-            report = llm_service.generate_investigation_report(data, evaluation, {"documents": [], "metadata": [], "scores": []})
-            explanation = report.summary
-        elif os.environ.get("GROQ_API_KEY"):
-            from openai import OpenAI
-            client = OpenAI(
-                base_url="https://api.groq.com/openai/v1",
-                api_key=os.environ.get("GROQ_API_KEY")
-            )
-            response = client.chat.completions.create(
-                model=os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile"),
-                messages=[
-                    {"role": "system", "content": "Explain risk factors of claim data concisely."},
-                    {"role": "user", "content": f"Claim Data: {json.dumps(data)}\nVerdict: {evaluation['verdict']}"}
-                ],
-                max_tokens=256
-            )
-            explanation = response.choices[0].message.content
+        explanation_prompt = (
+            f"Explain why this healthcare claim is evaluated with risk level {evaluation['risk_level']} "
+            f"and risk score {evaluation['risk_score']}/100 in 2-3 concise sentences. "
+            f"Key factors: {', '.join(evaluation['insights'])}"
+        )
+        explanation = llm_service.generate_chat_reply(
+            query=explanation_prompt,
+            claim_data=data,
+            rag_context={"documents": [], "metadata": [], "scores": []},
+            history=[]
+        )
     except Exception as e:
         print(f"[Prediction Route] LLM explanation notice: {e}")
 

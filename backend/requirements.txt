@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 fastapi
 uvicorn
 pydantic
@@ -5,7 +6,7 @@ python-dotenv
 openai
 sentence-transformers
 pypdf
-scikit-learn
+scikit-learn==1.6.1
 joblib
 pandas
 numpy

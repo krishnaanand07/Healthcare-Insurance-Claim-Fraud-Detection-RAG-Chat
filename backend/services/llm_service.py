@@ -15,41 +15,44 @@ class MultiLLMRouterService:
         self._init_clients()
 
     def _init_clients(self):
-        # 1. Groq Client (Ultra-fast Llama-3.3-70b-versatile)
+        # 1. Groq Client (Fast Primary)
         groq_key = os.environ.get("GROQ_API_KEY", "").strip()
+        print(f"[LLMRouter] GROQ_API_KEY configured: {bool(groq_key)}")
         if groq_key:
             try:
                 self.client_groq = OpenAI(
                     base_url="https://api.groq.com/openai/v1",
                     api_key=groq_key,
-                    timeout=8.0
+                    timeout=15.0
                 )
                 print("[LLMRouter] Groq client initialized successfully.")
             except Exception as e:
                 print(f"[LLMRouter] Groq init notice: {e}")
 
-        # 2. Gemini Client (Google OpenAI-compatible endpoint)
+        # 2. Gemini Client (Google OpenAI-compatible endpoint - Fallback)
         gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+        print(f"[LLMRouter] GEMINI_API_KEY configured: {bool(gemini_key)}")
         if gemini_key:
             try:
                 self.client_gemini = OpenAI(
                     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
                     api_key=gemini_key,
-                    timeout=8.0
+                    timeout=15.0
                 )
                 print("[LLMRouter] Gemini client initialized successfully.")
             except Exception as e:
                 print(f"[LLMRouter] Gemini init notice: {e}")
 
-        # 3. NVIDIA Client (NVIDIA Hosted API)
+        # 3. NVIDIA Client (NVIDIA Hosted API - Second Fallback)
         nvidia_key = os.environ.get("NVIDIA_API_KEY", "").strip()
         nvidia_url = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1").strip()
+        print(f"[LLMRouter] NVIDIA_API_KEY configured: {bool(nvidia_key)}")
         if nvidia_key:
             try:
                 self.client_nvidia = OpenAI(
                     base_url=nvidia_url,
                     api_key=nvidia_key,
-                    timeout=10.0
+                    timeout=15.0
                 )
                 print("[LLMRouter] NVIDIA client initialized successfully.")
             except Exception as e:
@@ -61,6 +64,61 @@ class MultiLLMRouterService:
             "gemini": "configured" if self.client_gemini or os.environ.get("GEMINI_API_KEY") else "unconfigured",
             "nvidia": "configured" if self.client_nvidia or os.environ.get("NVIDIA_API_KEY") else "unconfigured"
         }
+
+    def get_provider_diagnostics(self) -> Dict[str, Any]:
+        """
+        Task 5: Test each provider independently and report latency, status, and model.
+        Does not expose API keys.
+        """
+        results = {}
+        providers = [
+            ("groq", self.client_groq, os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")),
+            ("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")),
+            ("nvidia", self.client_nvidia, os.environ.get("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+        ]
+
+        for name, client, model in providers:
+            configured = bool(client)
+            if not configured:
+                results[name] = {
+                    "configured": False,
+                    "model": model,
+                    "status": "unconfigured",
+                    "latency_ms": 0,
+                    "error": "API key not configured"
+                }
+                continue
+
+            t0 = time.time()
+            try:
+                client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "user", "content": "Hi"}],
+                    max_tokens=5,
+                    timeout=5.0
+                )
+                dt = int((time.time() - t0) * 1000)
+                results[name] = {
+                    "configured": True,
+                    "model": model,
+                    "status": "ok",
+                    "latency_ms": dt
+                }
+            except Exception as e:
+                dt = int((time.time() - t0) * 1000)
+                err_msg = str(e)
+                status = "timeout" if "timeout" in err_msg.lower() else "error"
+                if name == "nvidia" and status == "timeout":
+                    print(f"[NVIDIA] timeout after {dt} ms")
+                results[name] = {
+                    "configured": True,
+                    "model": model,
+                    "status": status,
+                    "latency_ms": dt,
+                    "error": err_msg[:120]
+                }
+
+        return results
 
     def generate_investigation_report(
         self,
@@ -95,13 +153,14 @@ class MultiLLMRouterService:
 
         attempts = []
         if self.client_groq:
-            attempts.append(("groq", self.client_groq, os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")))
+            attempts.append(("groq", self.client_groq, os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")))
         if self.client_gemini:
-            attempts.append(("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")))
+            attempts.append(("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")))
         if self.client_nvidia:
             attempts.append(("nvidia", self.client_nvidia, os.environ.get("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct")))
 
         for provider, client, model in attempts:
+            t0 = time.time()
             try:
                 response = client.chat.completions.create(
                     model=model,
@@ -109,6 +168,7 @@ class MultiLLMRouterService:
                     temperature=0.2,
                     max_tokens=1024
                 )
+                dt = int((time.time() - t0) * 1000)
                 content = response.choices[0].message.content
                 parsed_dict = self._parse_json_response(content)
                 if parsed_dict:
@@ -117,10 +177,15 @@ class MultiLLMRouterService:
                         ml_prob = round(ml_prediction["risk_score"] / 100.0, 2)
                     if ml_prob is not None:
                         parsed_dict["fraud_probability"] = float(ml_prob)
-                    print(f"[LLMRouter] Generated investigation report using '{provider}' ({model}).")
+                    print(f"[LLMRouter] Generated investigation report using '{provider}' ({model}) in {dt}ms.")
                     return AIInvestigationAnalysis(**parsed_dict)
             except Exception as e:
-                print(f"[LLMRouter] Provider '{provider}' failed for investigation report: {e}")
+                dt = int((time.time() - t0) * 1000)
+                err_msg = str(e)
+                if provider == "nvidia" and "timeout" in err_msg.lower():
+                    print(f"[NVIDIA] timeout after {dt} ms")
+                else:
+                    print(f"[LLMRouter] Provider '{provider}' failed for investigation report in {dt}ms: {err_msg}")
 
         print("[LLMRouter] All LLM providers unavailable or failed. Using fast structured fallback report.")
         return self._build_fallback_report(claim_data, ml_prediction, rag_context)
@@ -136,13 +201,14 @@ class MultiLLMRouterService:
 
         attempts = []
         if self.client_groq:
-            attempts.append(("groq", self.client_groq, os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")))
+            attempts.append(("groq", self.client_groq, os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")))
         if self.client_gemini:
-            attempts.append(("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")))
+            attempts.append(("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")))
         if self.client_nvidia:
             attempts.append(("nvidia", self.client_nvidia, os.environ.get("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct")))
 
         for provider, client, model in attempts:
+            t0 = time.time()
             try:
                 response = client.chat.completions.create(
                     model=model,
@@ -150,16 +216,22 @@ class MultiLLMRouterService:
                     temperature=0.3,
                     max_tokens=768
                 )
+                dt = int((time.time() - t0) * 1000)
                 reply = response.choices[0].message.content
-                print(f"[LLMRouter] Chat reply generated using '{provider}' ({model}).")
+                print(f"[LLMRouter] Chat reply generated using '{provider}' ({model}) in {dt}ms.")
                 return reply
             except Exception as e:
-                print(f"[LLMRouter] Provider '{provider}' failed for chat reply: {e}")
+                dt = int((time.time() - t0) * 1000)
+                err_msg = str(e)
+                if provider == "nvidia" and "timeout" in err_msg.lower():
+                    print(f"[NVIDIA] timeout after {dt} ms")
+                else:
+                    print(f"[LLMRouter] Provider '{provider}' failed for chat reply in {dt}ms: {err_msg}")
 
         docs = rag_context.get("documents", [])
         if docs:
-            return f"Based on the healthcare guidelines and claim metrics:\n\n{docs[0][:400]}...\n\n(Note: AI LLM service temporarily in offline mode)."
-        return "The AI assistant evaluated the claim details. The model results and claim features indicate anomalies that should be verified by an investigator."
+            return f"Based on the healthcare guidelines and claim metrics:\n\n{docs[0][:400]}...\n\n(Note: AI LLM service temporarily in fallback mode)."
+        return "The AI assistant evaluated the claim details. The ML model results and claim features indicate anomalies that should be verified by an investigator."
 
     def generate_chat_reply_stream(
         self,
@@ -172,13 +244,14 @@ class MultiLLMRouterService:
 
         attempts = []
         if self.client_groq:
-            attempts.append(("groq", self.client_groq, os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")))
+            attempts.append(("groq", self.client_groq, os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")))
         if self.client_gemini:
-            attempts.append(("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")))
+            attempts.append(("gemini", self.client_gemini, os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")))
         if self.client_nvidia:
             attempts.append(("nvidia", self.client_nvidia, os.environ.get("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct")))
 
         for provider, client, model in attempts:
+            t0 = time.time()
             try:
                 stream = client.chat.completions.create(
                     model=model,
@@ -191,9 +264,16 @@ class MultiLLMRouterService:
                     delta = chunk.choices[0].delta.content if chunk.choices and chunk.choices[0].delta else None
                     if delta:
                         yield delta
+                dt = int((time.time() - t0) * 1000)
+                print(f"[LLMRouter] Stream completed using '{provider}' ({model}) in {dt}ms.")
                 return
             except Exception as e:
-                print(f"[LLMRouter] Streaming failed on provider '{provider}': {e}")
+                dt = int((time.time() - t0) * 1000)
+                err_msg = str(e)
+                if provider == "nvidia" and "timeout" in err_msg.lower():
+                    print(f"[NVIDIA] timeout after {dt} ms")
+                else:
+                    print(f"[LLMRouter] Streaming failed on provider '{provider}' in {dt}ms: {err_msg}")
 
         fallback = self.generate_chat_reply(query, claim_data, rag_context, history)
         for word in fallback.split(" "):
@@ -226,7 +306,8 @@ class MultiLLMRouterService:
         prompt_content = f"Question: {query}\n\n"
         if claim_data:
             prompt_content += f"Active Claim Details:\n{json.dumps(claim_data, indent=2)}\n\n"
-        prompt_content += f"Retrieved Knowledge Base Evidence:\n{context_str}"
+        if docs:
+            prompt_content += f"Retrieved Knowledge Base Evidence:\n{context_str}"
 
         messages.append({"role": "user", "content": prompt_content})
         return messages
@@ -293,7 +374,7 @@ class MultiLLMRouterService:
                 "Check provider licensing and NPI registration status"
             ],
             limitations=[
-                "Multi-LLM router in offline or fallback mode",
+                "Multi-LLM router in fallback mode",
                 "Requires direct human verification of physical medical chart"
             ]
         )

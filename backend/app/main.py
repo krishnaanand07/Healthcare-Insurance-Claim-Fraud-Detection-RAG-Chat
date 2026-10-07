@@ -80,6 +80,16 @@ def health_check():
         "providers": llm_service.get_provider_status()
     }
 
+@app.api_route("/api/health/providers", methods=["GET", "HEAD"], tags=["Health"])
+def provider_diagnostics():
+    """
+    Task 5: Endpoint returning independent diagnostics, latency, and status for each LLM provider.
+    """
+    return {
+        "status": "ok",
+        "diagnostics": llm_service.get_provider_diagnostics()
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
