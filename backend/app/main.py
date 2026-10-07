@@ -31,9 +31,10 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Configure CORS for production deployment
+# Configure CORS
 allowed_origins = [
     "https://rag-healthcare-insurance-claim-fraud.vercel.app",
+    "https://healthcare-insurance-claim-fraud-uu8l.onrender.com",
     "http://localhost:5173",
     "http://localhost:3000",
     "*"
@@ -55,9 +56,21 @@ app.include_router(rag.router, prefix="/api/rag", tags=["RAG"])
 app.include_router(ai_investigation.router, prefix="/api/ai", tags=["AI Investigation"])
 app.include_router(ai_chat.router, prefix="/api/ai", tags=["AI Chat"])
 
+@app.get("/", tags=["Root"])
+def read_root():
+    return {
+        "status": "ok",
+        "service": "Healthcare Insurance Claim Fraud Detection API",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health", tags=["Health"])
 def health_simple():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "service": "healthcare-claim-fraud-api"
+    }
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
