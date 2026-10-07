@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+openai
+sentence-transformers
+pypdf
+scikit-learn
+joblib
+pandas
+numpy
+pytest
+httpx
+sqlalchemy

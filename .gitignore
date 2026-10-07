@@ -1,0 +1,29 @@
+# Environments
+.env
+*.env
+.venv/
+env/
+venv/
+ENV/
+
+# Databases & Runtime Data
+*.db
+sql_app.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
