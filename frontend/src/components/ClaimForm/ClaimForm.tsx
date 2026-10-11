@@ -54,6 +54,7 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAnalyzing) return;
     const payload = {
       ...formData,
       claim_amount: parseFloat(formData.claim_amount) || 0,

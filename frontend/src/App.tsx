@@ -5,7 +5,7 @@ import { ClaimForm } from './components/ClaimForm/ClaimForm';
 import { AnalysisCard } from './components/Analysis/AnalysisCard';
 import { AIInvestigation } from './components/AIInvestigation/AIInvestigation';
 import { fetchWithTimeout, formatUserErrorMessage } from './api/config';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -20,44 +20,77 @@ function App() {
   }, []);
 
   const handleAnalyzeClaim = async (payload: any) => {
+    if (isAnalyzing) return; // Prevent duplicate submissions
+
     setIsAnalyzing(true);
     setEvaluationResult(null);
     setInvestigationResult(null);
     setCurrentClaimPayload(payload);
     setErrorMessage(null);
 
+    // Launch ML prediction and AI investigation concurrently
+    // 1. Prediction Task (Fast ML evaluation)
+    const predictionPromise = fetchWithTimeout('/api/predict/manual', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, 45000)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Prediction service returned HTTP ${res.status}`);
+        const data = await res.json();
+        setEvaluationResult(data);
+        return data;
+      })
+      .catch((err) => {
+        console.warn('[App] Prediction error:', err);
+        throw err;
+      });
+
+    // 2. Full AI Investigation Task (RAG + Multi-LLM Router)
+    const investigationPromise = fetchWithTimeout('/api/ai/investigate', {
+      method: 'POST',
+      body: JSON.stringify({ claim: payload })
+    }, 60000)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Investigation service returned HTTP ${res.status}`);
+        const data = await res.json();
+        // Validate response structure before claiming success
+        if (!data || !data.ai_analysis || !data.ml_prediction) {
+          throw new Error('Malformed AI investigation response received.');
+        }
+        setInvestigationResult(data);
+        return data;
+      })
+      .catch((err) => {
+        console.warn('[App] AI Investigation error:', err);
+        throw err;
+      });
+
     try {
-      // 1. Call ML Prediction API
-      const predResponse = await fetchWithTimeout('/api/predict/manual', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      }, 45000);
+      const results = await Promise.allSettled([predictionPromise, investigationPromise]);
+      const predRes = results[0];
+      const invRes = results[1];
 
-      if (predResponse.ok) {
-        const predData = await predResponse.json();
-        setEvaluationResult(predData);
-      } else {
-        throw new Error(`Prediction API responded with status: ${predResponse.status}`);
-      }
-
-      // 2. Call RAG + Multi-LLM AI Investigation API
-      const aiResponse = await fetchWithTimeout('/api/ai/investigate', {
-        method: 'POST',
-        body: JSON.stringify({ claim: payload })
-      }, 45000);
-
-      if (aiResponse.ok) {
-        const aiData = await aiResponse.json();
-        setInvestigationResult(aiData);
-      } else {
-        console.warn('AI Investigation API error status:', aiResponse.status);
+      if (predRes.status === 'rejected' && invRes.status === 'rejected') {
+        // Both failed
+        const userErr = formatUserErrorMessage(predRes.reason || invRes.reason);
+        setErrorMessage(userErr.message);
+      } else if (invRes.status === 'rejected') {
+        // Investigation failed or timed out, but ML succeeded
+        const userErr = formatUserErrorMessage(invRes.reason);
+        setErrorMessage(`AI Investigation notice: ${userErr.message}`);
       }
     } catch (err: any) {
-      console.error('Error during claim analysis:', err);
+      console.error('[App] Unexpected error during claim analysis:', err);
       const userErr = formatUserErrorMessage(err);
       setErrorMessage(userErr.message);
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleRetryInvestigation = () => {
+    if (currentClaimPayload && !isAnalyzing) {
+      handleAnalyzeClaim(currentClaimPayload);
     }
   };
 
@@ -98,12 +131,22 @@ function App() {
                 <AlertCircle className="text-amber-600 shrink-0" size={18} />
                 <span>{errorMessage}</span>
               </div>
-              <button
-                onClick={() => setErrorMessage(null)}
-                className="text-amber-700 hover:text-amber-900 font-bold px-2 py-0.5 rounded"
-              >
-                Dismiss
-              </button>
+              <div className="flex items-center gap-2">
+                {currentClaimPayload && !isAnalyzing && (
+                  <button
+                    onClick={handleRetryInvestigation}
+                    className="flex items-center gap-1 bg-amber-200 hover:bg-amber-300 text-amber-900 px-2.5 py-1 rounded-md font-bold text-xs transition-colors"
+                  >
+                    <RefreshCw size={12} /> Retry
+                  </button>
+                )}
+                <button
+                  onClick={() => setErrorMessage(null)}
+                  className="text-amber-700 hover:text-amber-900 font-bold px-2 py-0.5 rounded"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
           )}
         </div>

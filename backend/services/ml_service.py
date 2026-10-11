@@ -1,45 +1,90 @@
 import os
 import pickle
 import joblib
+import threading
+import time
+import logging
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
+logger = logging.getLogger("fraud_prediction_service")
 
 class FraudPredictionService:
     def __init__(self):
         self.model = None
         self.scaler = None
         self._loaded = False
+        self._load_count = 0
+        self._load_lock = threading.Lock()
+        self.last_load_time_ms = 0
 
-    def _load_artifacts(self):
-        if self._loaded:
-            return
-        self._loaded = True
-        # Look for 6.Artifacts in root directory
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        artifacts_dir = os.path.join(base_dir, "6.Artifacts")
-        model_path = os.path.join(artifacts_dir, "random_forest.pkl")
-        scaler_path = os.path.join(artifacts_dir, "scaler.pkl")
+    def load_artifacts(self) -> bool:
+        """
+        Thread-safe method to load ML model and scaler once and cache in memory.
+        Safe for concurrent requests.
+        """
+        if self._loaded and self.model is not None and self.scaler is not None:
+            return True
 
-        if os.path.exists(model_path) and os.path.exists(scaler_path):
-            try:
-                self.model = joblib.load(model_path)
-                with open(scaler_path, "rb") as f:
-                    self.scaler = pickle.load(f)
-                print("[FraudPredictionService] ML Model & Scaler loaded successfully from 6.Artifacts!")
-            except Exception as e:
-                print(f"[FraudPredictionService] Warning loading artifacts: {e}")
+        with self._load_lock:
+            if self._loaded and self.model is not None and self.scaler is not None:
+                return True
+
+            t0 = time.time()
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            parent_dir = os.path.dirname(base_dir)
+
+            candidate_dirs = [
+                os.path.join(parent_dir, "6.Artifacts"),
+                os.path.join(base_dir, "6.Artifacts"),
+                os.path.join(os.getcwd(), "6.Artifacts"),
+                os.path.join(os.getcwd(), "..", "6.Artifacts"),
+            ]
+
+            model_path = None
+            scaler_path = None
+
+            for d in candidate_dirs:
+                m = os.path.join(d, "random_forest.pkl")
+                s = os.path.join(d, "scaler.pkl")
+                if os.path.exists(m) and os.path.exists(s):
+                    model_path = m
+                    scaler_path = s
+                    break
+
+            if model_path and scaler_path:
+                try:
+                    self.model = joblib.load(model_path)
+                    with open(scaler_path, "rb") as f:
+                        self.scaler = pickle.load(f)
+                    self._loaded = True
+                    self._load_count += 1
+                    self.last_load_time_ms = int((time.time() - t0) * 1000)
+                    print(f"[FraudPredictionService] Model and Scaler loaded once in {self.last_load_time_ms}ms from {os.path.dirname(model_path)} (load_count={self._load_count})")
+                    return True
+                except Exception as e:
+                    print(f"[FraudPredictionService] Warning loading artifacts: {e}")
+            else:
+                print("[FraudPredictionService] Note: 6.Artifacts/random_forest.pkl or scaler.pkl not found in candidate paths. Rule-based evaluation active.")
+
+            self._loaded = True
+            return False
 
     def predict(self, claim_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Runs ML Model if full dataset features are provided, otherwise falls back to rule-based evaluation.
+        Artifacts are guaranteed to be loaded only once and reused across all requests.
         """
         if not self._loaded:
-            self._load_artifacts()
+            self.load_artifacts()
 
         # If we have trained artifacts and required numeric columns, use trained ML model
-        if self.model is not None and self.scaler is not None and "Claim_Amount" in claim_data:
+        if self.model is not None and self.scaler is not None and ("Claim_Amount" in claim_data or "claim_amount" in claim_data):
             try:
                 data_dict = dict(claim_data)
+                if "Claim_Amount" not in data_dict and "claim_amount" in data_dict:
+                    data_dict["Claim_Amount"] = data_dict["claim_amount"]
+
                 rename_mapping = {
                     "Provider_Type_Specialist_Office": "Provider_Type_Specialist Office",
                     "Provider_Type_Urgent_Care": "Provider_Type_Urgent Care",
@@ -50,7 +95,7 @@ class FraudPredictionService:
                 }
                 df = pd.DataFrame([data_dict])
                 df.rename(columns=rename_mapping, inplace=True)
-                
+
                 scale_columns = [
                     'Claim_Amount', 'Patient_Age', 'Patient_City', 'Provider_City',
                     'Diagnosis_Code', 'Procedure_Code', 'Number_of_Procedures',
@@ -58,14 +103,13 @@ class FraudPredictionService:
                     'Number_of_Previous_Claims_Patient', 'Number_of_Previous_Claims_Provider',
                     'Provider_Patient_Distance_Miles', 'Claim_Year', 'Claim_Month', 'Claim_Delay_Days'
                 ]
-                # Filter scale columns present
                 scale_cols_present = [c for c in scale_columns if c in df.columns]
                 if len(scale_cols_present) == len(scale_columns):
                     df[scale_columns] = self.scaler.transform(df[scale_columns])
                     prediction = bool(self.model.predict(df)[0])
                     probability = float(self.model.predict_proba(df)[0][1])
                     risk_score = int(probability * 100)
-                    
+
                     if probability <= 0.30:
                         verdict, risk_level = "LIKELY_GENUINE", "LOW"
                     elif probability <= 0.60:
@@ -90,7 +134,7 @@ class FraudPredictionService:
     def predict_manual(self, data: Dict[str, Any]) -> Dict[str, Any]:
         insights = []
         anomalies_count = 0
-        
+
         claim_amount = float(data.get("claim_amount") or data.get("Claim_Amount") or 0)
         if claim_amount > 100000:
             insights.append("Claim amount is significantly higher than expected range ($100,000+)")
@@ -100,7 +144,7 @@ class FraudPredictionService:
             anomalies_count += 1
         else:
             insights.append("Claim amount is within expected range")
-            
+
         diag = str(data.get("diagnosis_code") or data.get("Diagnosis_Code") or "")
         proc = str(data.get("procedure_code") or data.get("Procedure_Code") or "")
         if (diag == "0" and proc != "0") or (proc == "0" and diag != "0"):
@@ -108,7 +152,7 @@ class FraudPredictionService:
             anomalies_count += 1
         else:
             insights.append("Diagnosis and procedure are consistent")
-            
+
         los = int(data.get("length_of_stay_days") or data.get("Length_of_Stay_Days") or 0)
         svc_type = str(data.get("service_type") or data.get("Service_Type") or "").lower()
         if "outpatient" in svc_type and los > 0:
@@ -119,10 +163,10 @@ class FraudPredictionService:
             anomalies_count += 1
         else:
             insights.append("Length of stay is reasonable for treatment type")
-            
+
         pat_claims = int(data.get("previous_claims_patient") or data.get("Number_of_Previous_Claims_Patient") or 0)
         prov_claims = int(data.get("previous_claims_provider") or data.get("Number_of_Previous_Claims_Provider") or 0)
-        
+
         if pat_claims > 15:
             insights.append("Patient has an unusually high claim history (>15 claims)")
             anomalies_count += 1
@@ -131,7 +175,7 @@ class FraudPredictionService:
             anomalies_count += 1
         if pat_claims <= 15 and prov_claims <= 100:
             insights.append("No unusual claim history detected for patient or provider")
-            
+
         late = bool(data.get("claim_submitted_late") or data.get("Claim_Submitted_Late") or False)
         if late:
             insights.append("Claim was submitted unusually late")
@@ -142,7 +186,7 @@ class FraudPredictionService:
         base_risk = 10
         risk_score = min(100, base_risk + (anomalies_count * 20))
         fraud_prob = round(risk_score / 100.0, 2)
-        
+
         if risk_score <= 30:
             verdict = "LIKELY_GENUINE"
             risk_level = "LOW"
@@ -155,7 +199,7 @@ class FraudPredictionService:
             verdict = "SUSPICIOUS"
             risk_level = "HIGH"
             confidence = 95
-            
+
         return {
             "is_fraudulent": risk_score > 60,
             "fraud_probability": fraud_prob,

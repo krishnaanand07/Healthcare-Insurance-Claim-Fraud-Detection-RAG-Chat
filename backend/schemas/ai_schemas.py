@@ -29,6 +29,7 @@ class InvestigationResponse(BaseModel):
     ml_prediction: Dict[str, Any]
     retrieved_context: List[Dict[str, Any]]
     ai_analysis: AIInvestigationAnalysis
+    diagnostics: Optional[Dict[str, Any]] = None
 
 class ChatRequest(BaseModel):
     query: str

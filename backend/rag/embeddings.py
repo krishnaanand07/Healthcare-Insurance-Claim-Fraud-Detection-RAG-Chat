@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 import numpy as np
 from typing import List
 
@@ -15,27 +17,41 @@ class EmbeddingService:
         self.model_name = model_name
         self.model = None
         self._initialized = False
+        self._init_lock = threading.Lock()
+        self.init_duration_ms = 0
 
-    def _init_model(self):
+    def init_model(self):
+        """
+        Thread-safe pre-initialization of SentenceTransformer embedding model.
+        Called on startup to prevent cold-start latency on user requests.
+        """
         if self._initialized:
             return
-        self._initialized = True
-        try:
-            import torch
-            torch.set_num_threads(1)
-            from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer(self.model_name)
-            print(f"[EmbeddingService] SentenceTransformer model '{self.model_name}' loaded successfully.")
-        except Exception as e:
-            print(f"[EmbeddingService] Notice: Could not load SentenceTransformer ({e}). Using lightweight vectorizer.")
-            self.model = None
+
+        with self._init_lock:
+            if self._initialized:
+                return
+
+            t0 = time.time()
+            try:
+                import torch
+                torch.set_num_threads(1)
+                from sentence_transformers import SentenceTransformer
+                self.model = SentenceTransformer(self.model_name)
+                self.init_duration_ms = int((time.time() - t0) * 1000)
+                print(f"[EmbeddingService] SentenceTransformer model '{self.model_name}' loaded successfully in {self.init_duration_ms}ms.")
+            except Exception as e:
+                print(f"[EmbeddingService] Notice: Could not load SentenceTransformer ({e}). Using lightweight vectorizer.")
+                self.model = None
+            finally:
+                self._initialized = True
 
     def embed_texts(self, texts: List[str]) -> np.ndarray:
         if not texts:
             return np.empty((0, 384), dtype=np.float32)
 
         if not self._initialized:
-            self._init_model()
+            self.init_model()
 
         if self.model is not None:
             try:
@@ -58,4 +74,3 @@ class EmbeddingService:
         return matrix.astype(np.float32)
 
 embedding_service = EmbeddingService()
-

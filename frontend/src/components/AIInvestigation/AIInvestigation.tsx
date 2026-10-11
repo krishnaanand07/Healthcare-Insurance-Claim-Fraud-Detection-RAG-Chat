@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, AlertCircle, FileCheck, CheckSquare, Sparkles, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, AlertCircle, FileCheck, CheckSquare, Sparkles } from 'lucide-react';
 import { EvidenceSources } from './EvidenceSources';
 import { RiskFactors } from './RiskFactors';
 import { AIChat } from './AIChat';
