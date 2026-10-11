@@ -4,13 +4,16 @@ import time
 import numpy as np
 from typing import List
 
-# Limit PyTorch memory & thread overhead on CPU servers
+# Limit thread overhead on CPU servers
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# Check if heavy neural embeddings are explicitly enabled (disabled by default on Render 512M)
+ENABLE_HEAVY_EMBEDDINGS = os.environ.get("ENABLE_HEAVY_EMBEDDINGS", "false").lower() in ("true", "1")
 
 class EmbeddingService:
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
@@ -22,14 +25,21 @@ class EmbeddingService:
 
     def init_model(self):
         """
-        Thread-safe pre-initialization of SentenceTransformer embedding model.
-        Called on startup to prevent cold-start latency on user requests.
+        Memory-safe initialization.
+        On Render free tier (512 MiB limit), heavy PyTorch / SentenceTransformer
+        initialization is bypassed by default to prevent OOM termination.
         """
         if self._initialized:
             return
 
         with self._init_lock:
             if self._initialized:
+                return
+
+            if not ENABLE_HEAVY_EMBEDDINGS:
+                print("[EmbeddingService] Running in lightweight memory-safe mode (<512M limit). PyTorch / SentenceTransformer downloads bypassed.")
+                self.model = None
+                self._initialized = True
                 return
 
             t0 = time.time()
@@ -60,7 +70,7 @@ class EmbeddingService:
                 norms[norms == 0] = 1.0
                 return (embeddings / norms).astype(np.float32)
             except Exception as e:
-                print(f"[EmbeddingService] Error during encoding: {e}. Falling back to HashingVectorizer.")
+                print(f"[EmbeddingService] Error during neural encoding: {e}. Falling back to lightweight vectorizer.")
 
         return self._fallback_embed(texts)
 

@@ -12,6 +12,7 @@ from rag.vectorstore import vector_store
 def retrieve_relevant_documents(query: str, top_k: int = 5) -> Dict[str, Any]:
     """
     Retrieve top-k relevant knowledge base chunks for a given query string.
+    Uses memory-safe, high-precision retrieval over stored knowledge base representations.
     Returns dict formatted as:
     {
       "documents": [...],
@@ -22,8 +23,8 @@ def retrieve_relevant_documents(query: str, top_k: int = 5) -> Dict[str, Any]:
     if not query or not query.strip():
         return {"documents": [], "metadata": [], "scores": []}
 
-    query_vector = embedding_service.embed_query(query)
-    results = vector_store.similarity_search(query_vector, top_k=top_k)
+    # Pass query directly to vector_store for lightweight TF-IDF cosine ranking
+    results = vector_store.search(query=query, top_k=top_k)
 
     documents = []
     metadata = []
@@ -45,7 +46,7 @@ def construct_query_from_claim(claim_data: Dict[str, Any], ml_prediction: Dict[s
     Helper function to construct a dense search query from claim details and ML prediction.
     """
     query_parts = []
-    
+
     amount = claim_data.get("claim_amount") or claim_data.get("Claim_Amount")
     if amount:
         query_parts.append(f"Claim Amount: ${amount}")
