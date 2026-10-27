@@ -89,7 +89,7 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="neo-surface p-4 border border-white/70 flex flex-col md:flex-row items-center gap-3">
+      <div className="neo-surface p-4 border border-[var(--color-border)] flex flex-col md:flex-row items-center gap-3">
         {/* Search Input */}
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -98,7 +98,7 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             placeholder="Search by Claim ID, Patient ID, Hospital, or Diagnosis..."
-            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#172554]/20"
+            className="w-full pl-10 pr-4 py-2 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] text-xs font-medium text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -108,7 +108,7 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="Fraudulent">Fraudulent</option>
@@ -120,7 +120,7 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
           <select
             value={riskFilter}
             onChange={(e) => { setRiskFilter(e.target.value); setCurrentPage(1); }}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
           >
             <option value="ALL">All Risk Levels</option>
             <option value="High">High Risk (&gt;70%)</option>
@@ -131,33 +131,33 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
       </div>
 
       {/* Claims Table */}
-      <div className="neo-surface p-5 border border-white/70">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold text-[#64748B]">
-            Showing <span className="text-[#172554]">{paginatedClaims.length}</span> of <span className="text-[#172554]">{sortedClaims.length}</span> claims
+      <div className="neo-surface p-5 border border-[var(--color-border)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <p className="text-xs font-bold text-[var(--color-text-secondary)]">
+            Showing <span className="text-[var(--color-text-primary)]">{paginatedClaims.length}</span> of <span className="text-[var(--color-text-primary)]">{sortedClaims.length}</span> claims
           </p>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
             <span>Sort by:</span>
             <button
               onClick={() => toggleSort('date')}
-              className={`px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-all ${
-                sortBy === 'date' ? 'bg-[#172554] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              className={`px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-colors ${
+                sortBy === 'date' ? 'bg-[#172554] dark:bg-blue-600 text-white' : 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               Date <ArrowUpDown size={12} />
             </button>
             <button
               onClick={() => toggleSort('amount')}
-              className={`px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-all ${
-                sortBy === 'amount' ? 'bg-[#172554] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              className={`px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-colors ${
+                sortBy === 'amount' ? 'bg-[#172554] dark:bg-blue-600 text-white' : 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               Amount <ArrowUpDown size={12} />
             </button>
             <button
               onClick={() => toggleSort('risk')}
-              className={`px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-all ${
-                sortBy === 'risk' ? 'bg-[#172554] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              className={`px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 cursor-pointer transition-colors ${
+                sortBy === 'risk' ? 'bg-[#172554] dark:bg-blue-600 text-white' : 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               Fraud Score <ArrowUpDown size={12} />
@@ -165,9 +165,9 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100/90 text-[#64748B] uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">
+            <thead className="bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] uppercase font-bold text-[10px] tracking-wider border-b border-[var(--color-border)]">
               <tr>
                 <th className="p-3.5">Claim ID</th>
                 <th className="p-3.5">Patient ID</th>
@@ -180,7 +180,7 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
                 <th className="p-3.5 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white font-medium">
+            <tbody className="divide-y divide-[var(--color-border)] bg-[var(--color-surface)] font-medium">
               {paginatedClaims.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-slate-400 font-medium">
@@ -189,37 +189,37 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
                 </tr>
               ) : (
                 paginatedClaims.map((claim) => (
-                  <tr key={claim.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-3.5 font-bold text-[#172554]">
-                      <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-[11px]">{claim.claim_id}</span>
+                  <tr key={claim.id} className="hover:bg-[var(--color-surface-hover)] transition-colors">
+                    <td className="p-3.5 font-bold text-[var(--color-text-primary)]">
+                      <span className="font-mono bg-[var(--color-surface-hover)] px-2 py-0.5 rounded text-[11px] border border-[var(--color-border)]">{claim.claim_id}</span>
                     </td>
-                    <td className="p-3.5 text-slate-700">
+                    <td className="p-3.5 text-[var(--color-text-primary)]">
                       <span className="font-semibold">{claim.patient_id}</span>
-                      <span className="text-[10px] text-slate-400 block">{claim.gender}, {claim.age}y</span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)] block">{claim.gender}, {claim.age}y</span>
                     </td>
-                    <td className="p-3.5 text-slate-700">
+                    <td className="p-3.5 text-[var(--color-text-primary)]">
                       <span className="font-semibold">{claim.hospital_name}</span>
-                      <span className="text-[10px] text-slate-400 block">{claim.provider_patient_distance} miles away</span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)] block">{claim.provider_patient_distance} miles away</span>
                     </td>
-                    <td className="p-3.5 text-slate-700">
-                      <span className="font-mono font-bold text-slate-800">{claim.diagnosis_code}</span>
-                      <span className="text-[10px] text-slate-400 block truncate max-w-[160px]">{claim.diagnosis_desc}</span>
+                    <td className="p-3.5 text-[var(--color-text-primary)]">
+                      <span className="font-mono font-bold">{claim.diagnosis_code}</span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)] block truncate max-w-[160px]">{claim.diagnosis_desc}</span>
                     </td>
-                    <td className="p-3.5 text-right font-bold text-[#172554]">
-                      ${claim.claim_amount.toLocaleString()}
+                    <td className="p-3.5 text-right font-bold text-[var(--color-text-primary)] font-mono">
+                      ₹{claim.claim_amount.toLocaleString()}
                     </td>
                     <td className="p-3.5 text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className={`inline-flex px-2 py-0.5 rounded font-bold text-xs ${
+                        <span className={`inline-flex px-2 py-0.5 rounded font-bold text-xs font-mono border ${
                           claim.fraud_probability > 0.7 
-                            ? 'bg-red-100 text-red-700' 
+                            ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' 
                             : claim.fraud_probability > 0.35 
-                            ? 'bg-amber-100 text-amber-700' 
-                            : 'bg-emerald-100 text-emerald-700'
+                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
+                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                         }`}>
                           {(claim.fraud_probability * 100).toFixed(0)}%
                         </span>
-                        <div className="w-16 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-16 bg-[var(--color-surface-hover)] border border-[var(--color-border)] h-1.5 rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${
                               claim.fraud_probability > 0.7 
@@ -236,21 +236,21 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
                     <td className="p-3.5 text-center">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold border ${
                         claim.status === 'Fraudulent'
-                          ? 'bg-red-50 text-red-700 border-red-200'
+                          ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
                           : claim.status === 'Under Review'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                       }`}>
                         {claim.status}
                       </span>
                     </td>
-                    <td className="p-3.5 text-slate-500 font-mono text-[11px]">
+                    <td className="p-3.5 text-[var(--color-text-secondary)] font-mono text-[11px]">
                       {claim.service_date}
                     </td>
                     <td className="p-3.5 text-center">
                       <button
                         onClick={() => setSelectedClaim(claim)}
-                        className="inline-flex items-center gap-1 bg-slate-100 hover:bg-[#172554] hover:text-white text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 bg-[var(--color-surface-hover)] hover:bg-[#172554] dark:hover:bg-blue-600 hover:text-white text-[var(--color-text-primary)] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border border-[var(--color-border)]"
                       >
                         <Eye size={12} />
                         <span>Details</span>
@@ -264,10 +264,11 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
         </div>
 
         {/* Pagination Footer */}
-        <div className="flex items-center justify-between mt-5 pt-3 border-t border-slate-200 text-xs">
-          <p className="text-slate-500">
-            Page <span className="font-bold text-slate-700">{currentPage}</span> of <span className="font-bold text-slate-700">{totalPages}</span>
+        <div className="flex items-center justify-between mt-5 pt-3 border-t border-[var(--color-border)] text-xs">
+          <p className="text-[var(--color-text-secondary)]">
+            Page <span className="font-bold text-[var(--color-text-primary)]">{currentPage}</span> of <span className="font-bold text-[var(--color-text-primary)]">{totalPages}</span>
           </p>
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
@@ -302,13 +303,13 @@ export const ClaimHistoryPage: React.FC<ClaimHistoryPageProps> = ({ onNavigate }
 
       {/* Claim Detail Modal */}
       {selectedClaim && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative border border-slate-200 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--color-surface)] text-[var(--color-text-primary)] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-lg p-6 relative border border-[var(--color-border)] animate-fadeIn">
             {/* Modal Header */}
-            <div className="flex items-start justify-between pb-4 border-b border-slate-200">
+            <div className="flex items-start justify-between pb-4 border-b border-[var(--color-border)]">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold bg-slate-100 px-2 py-1 rounded text-[#172554]">
+                  <span className="font-mono text-xs font-bold bg-[var(--color-surface-hover)] px-2 py-1 rounded text-[var(--color-text-primary)]">
                     {selectedClaim.claim_id}
                   </span>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${

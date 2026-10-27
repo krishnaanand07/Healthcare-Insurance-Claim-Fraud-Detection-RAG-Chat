@@ -81,103 +81,108 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, isLoading })
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="neo-surface p-8 h-full flex flex-col overflow-y-auto custom-scrollbar"
+      className="neo-surface p-6 sm:p-8 h-full flex flex-col overflow-y-auto border border-[var(--color-border)]"
     >
-      <div className="flex justify-between items-start mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--color-border)]">
         <div>
-          <h2 className="text-2xl font-bold text-[#172554] mb-1">AI Analysis Result</h2>
-          <p className="text-[#64748B] text-sm">Our model has analyzed the claim based on multiple risk factors.</p>
+          <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Predictive Fraud Assessment</h2>
+          <p className="text-[var(--color-text-secondary)] text-xs mt-0.5">Scikit-Learn Random Forest probabilistic inference</p>
         </div>
-        <div className="text-right">
-          <div className="text-sm font-bold text-[#172554] mb-1">Confidence</div>
-          <div className="flex items-center gap-3">
-            <div className="w-24 h-2 bg-[#EEF3FA] rounded-full overflow-hidden neo-inset">
+        <div className="text-left sm:text-right">
+          <div className="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Model Confidence</div>
+          <div className="flex items-center gap-2">
+            <div className="w-24 h-2 bg-[var(--color-surface-hover)] rounded-full overflow-hidden border border-[var(--color-border)]">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${result.confidence}%` }}
-                className="h-full bg-gradient-to-r from-[#172554] to-[#52658F]"
+                className="h-full bg-blue-600 rounded-full"
               />
             </div>
-            <span className="text-sm font-bold text-[#172554]">{result.confidence}%</span>
+            <span className="text-xs font-bold font-mono text-[var(--color-text-primary)]">{result.confidence}%</span>
           </div>
         </div>
       </div>
 
       {/* Verdict Container */}
-      <div className="rounded-2xl p-6 mb-8 flex items-center justify-between shadow-inner" style={{ backgroundColor: verdictBg, border: `1px solid ${verdictColor}30` }}>
-        <div className="flex gap-4 items-center">
-          <VerdictIcon size={32} color={verdictColor} />
+      <div className="rounded-xl p-4 sm:p-5 mb-6 flex items-center justify-between border" style={{ backgroundColor: verdictBg, borderColor: `${verdictColor}40` }}>
+        <div className="flex gap-3.5 items-center">
+          <VerdictIcon size={28} color={verdictColor} className="shrink-0" />
           <div>
-            <h3 className="text-xl font-bold" style={{ color: verdictColor }}>{verdictTitle}</h3>
-            <p className="text-sm text-[#172554]/70 mt-1 font-medium">{verdictSub}</p>
+            <h3 className="text-lg font-bold" style={{ color: verdictColor }}>{verdictTitle}</h3>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 font-medium">{verdictSub}</p>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-xs uppercase tracking-wider font-bold" style={{ color: verdictColor }}>Risk Level</div>
-          <div className="text-lg font-bold" style={{ color: verdictColor }}>{result.risk_level}</div>
+        <div className="text-right shrink-0">
+          <div className="text-[10px] uppercase tracking-wider font-bold" style={{ color: verdictColor }}>Risk Level</div>
+          <div className="text-base font-extrabold" style={{ color: verdictColor }}>{result.risk_level}</div>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="neo-surface p-4 text-center">
-          <IndianRupee className="mx-auto mb-2 text-[#52658F]" size={24} />
-          <div className="text-lg font-bold text-[#172554]">Amount</div>
-          <div className="text-xs font-medium text-[#64748B] mt-1">{result.insights[0] || 'Checked'}</div>
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="p-3 rounded-lg bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-center">
+          <IndianRupee className="mx-auto mb-1 text-slate-500" size={18} />
+          <div className="text-xs font-bold text-[var(--color-text-primary)]">Billing Tier</div>
+          <div className="text-[11px] text-[var(--color-text-secondary)] mt-0.5 truncate">{result.insights[0] || 'Verified'}</div>
         </div>
-        <div className="neo-surface p-4 text-center">
-          <HeartPulse className="mx-auto mb-2 text-[#52658F]" size={24} />
-          <div className="text-lg font-bold text-[#172554]">Consistency</div>
-          <div className="text-xs font-medium text-[#64748B] mt-1">{result.insights[1] || 'Checked'}</div>
+        <div className="p-3 rounded-lg bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-center">
+          <HeartPulse className="mx-auto mb-1 text-slate-500" size={18} />
+          <div className="text-xs font-bold text-[var(--color-text-primary)]">Consistency</div>
+          <div className="text-[11px] text-[var(--color-text-secondary)] mt-0.5 truncate">{result.insights[1] || 'Compliant'}</div>
         </div>
-        <div className="neo-surface p-4 text-center">
-          <Clock className="mx-auto mb-2 text-[#52658F]" size={24} />
-          <div className="text-lg font-bold text-[#172554]">Timing</div>
-          <div className="text-xs font-medium text-[#64748B] mt-1">{result.insights[result.insights.length-1] || 'Checked'}</div>
+        <div className="p-3 rounded-lg bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-center">
+          <Clock className="mx-auto mb-1 text-slate-500" size={18} />
+          <div className="text-xs font-bold text-[var(--color-text-primary)]">Filing Timeline</div>
+          <div className="text-[11px] text-[var(--color-text-secondary)] mt-0.5 truncate">{result.insights[result.insights.length-1] || 'On Schedule'}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-8 mb-8">
-        {/* Risk Score Circle */}
-        <div className="col-span-1 flex flex-col items-center justify-center neo-inset p-6 rounded-2xl">
-          <div className="relative w-32 h-32 flex items-center justify-center neo-surface rounded-full mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+        {/* Risk Score Gauge */}
+        <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-[var(--color-surface-hover)] border border-[var(--color-border)]">
+          <div className="relative w-28 h-28 flex items-center justify-center mb-2">
             <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90">
-              <circle cx="64" cy="64" r="54" fill="none" stroke="#EEF3FA" strokeWidth="12" />
+              <circle cx="56" cy="56" r="46" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeWidth="10" />
               <motion.circle 
-                cx="64" cy="64" r="54" 
+                cx="56" cy="56" r="46" 
                 fill="none" 
                 stroke={getRiskColor(result.risk_score)} 
-                strokeWidth="12"
-                strokeDasharray="339.292"
-                initial={{ strokeDashoffset: 339.292 }}
-                animate={{ strokeDashoffset: 339.292 - (339.292 * result.risk_score) / 100 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
+                strokeWidth="10"
+                strokeDasharray="289.02"
+                initial={{ strokeDashoffset: 289.02 }}
+                animate={{ strokeDashoffset: 289.02 - (289.02 * result.risk_score) / 100 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
                 strokeLinecap="round"
               />
             </svg>
             <div className="text-center z-10">
-              <div className="text-3xl font-black text-[#172554]">{result.risk_score}</div>
-              <div className="text-[10px] uppercase font-bold text-[#64748B]">Score</div>
+              <div className="text-2xl font-black font-mono text-[var(--color-text-primary)]">{result.risk_score}</div>
+              <div className="text-[9px] uppercase font-bold text-[var(--color-text-secondary)]">Risk %</div>
             </div>
           </div>
+          <span className="text-[11px] font-semibold text-[var(--color-text-secondary)]">Fraud Likelihood</span>
         </div>
 
         {/* Key Insights List */}
-        <div className="col-span-2">
-          <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wider mb-4 pb-2 border-b border-[#172554]/10">Key Insights</h4>
-          <ul className="space-y-3">
+        <div className="sm:col-span-2 flex flex-col justify-center">
+          <h4 className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-2.5 pb-1 border-b border-[var(--color-border)]">
+            Algorithmic Findings
+          </h4>
+          <ul className="space-y-2">
             {result.insights.map((insight, idx) => {
               const isWarning = insight.includes('unusual') || insight.includes('higher') || insight.includes('verification');
               return (
-                <li key={idx} className="flex gap-3 items-start text-sm font-medium">
+                <li key={idx} className="flex gap-2 items-start text-xs font-medium">
                   {isWarning ? (
-                    <AlertTriangle size={18} className="text-[#F59E0B] shrink-0 mt-0.5" />
+                    <AlertTriangle size={15} className="text-amber-500 shrink-0 mt-0.5" />
                   ) : (
-                    <CheckCircle2 size={18} className="text-[#22C55E] shrink-0 mt-0.5" />
+                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
                   )}
-                  <span className={isWarning ? 'text-[#172554]' : 'text-[#64748B]'}>{insight}</span>
+                  <span className={isWarning ? 'text-[var(--color-text-primary)] font-semibold' : 'text-[var(--color-text-secondary)]'}>
+                    {insight}
+                  </span>
                 </li>
               );
             })}
@@ -185,24 +190,24 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, isLoading })
         </div>
       </div>
 
-      {/* Gemini Explanation */}
-      <div className="mb-6 p-5 bg-[#172554] text-white rounded-2xl shadow-xl relative overflow-hidden">
-        <Sparkles className="absolute -right-4 -bottom-4 text-white/10" size={100} />
-        <h4 className="text-sm font-bold text-[#FACC15] uppercase tracking-wider mb-2 flex items-center gap-2">
-          <Sparkles size={16} /> Gemini AI Summary
+      {/* Model Explanation */}
+      <div className="mb-4 p-4 bg-slate-900 text-white rounded-xl border border-slate-700">
+        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <Sparkles size={14} /> AI Diagnostic Summary
         </h4>
-        <p className="text-sm leading-relaxed text-white/90 relative z-10 font-medium">
+        <p className="text-xs leading-relaxed text-slate-200 font-medium">
           {result.explanation}
         </p>
       </div>
 
       {/* Disclaimer */}
-      <div className="mt-auto bg-[#FACC15]/20 border border-[#FACC15]/30 rounded-xl p-4 flex items-start gap-3">
-        <AlertTriangle size={20} className="text-[#F59E0B] shrink-0" />
-        <p className="text-xs font-semibold text-[#172554]/80">
-          This is an AI-assisted analysis. Please review critical cases manually. The system is designed to support an insurance analyst, not make independent irreversible decisions.
+      <div className="mt-auto bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 flex items-start gap-2.5">
+        <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <p className="text-[11px] font-medium text-amber-900 dark:text-amber-200">
+          Automated clinical decision support recommendation. Requires human adjudicator authorization before adjudication action.
         </p>
       </div>
     </motion.div>
   );
 };
+

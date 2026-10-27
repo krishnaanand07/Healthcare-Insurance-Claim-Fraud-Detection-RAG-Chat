@@ -145,7 +145,7 @@ export const AIChat: React.FC<AIChatProps> = ({ claimData, investigationId }) =>
   };
 
   return (
-    <div className="neo-surface p-6 rounded-2xl flex flex-col h-[580px] bg-white/70 backdrop-blur-md border border-white/60 shadow-lg">
+    <div className="neo-surface p-6 rounded-xl flex flex-col h-[580px] border border-[var(--color-border)] shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
         <div className="flex items-center gap-3">

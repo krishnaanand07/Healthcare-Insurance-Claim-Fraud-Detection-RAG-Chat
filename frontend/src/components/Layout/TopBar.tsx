@@ -1,44 +1,54 @@
 import React from 'react';
-import { Search, Bell, ChevronDown, Moon } from 'lucide-react';
+import { Bell, ChevronDown, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
-export const TopBar = () => {
+export const TopBar: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <header className="w-full h-24 flex items-center justify-between px-8">
-      {/* Search Bar */}
-      <div className="flex-1 max-w-2xl relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#64748B]" size={20} />
-        <input 
-          type="text" 
-          placeholder="Search claims, providers, or patients..." 
-          className="neo-input pl-12 pr-16"
-        />
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center">
-          <kbd className="px-2 py-1 bg-[#EEF3FA] border border-[#172554]/10 rounded text-xs font-mono text-[#64748B] shadow-inner">Ctrl K</kbd>
-        </div>
+    <header className="w-full h-20 flex items-center justify-between px-6 sm:px-8 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+      {/* Title or Breadcrumb space */}
+      <div className="flex items-center gap-3">
+        <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
+          Claim Fraud Detection & RAG Investigation
+        </h2>
       </div>
 
-      {/* Right Side */}
-      <div className="flex items-center gap-6 ml-8">
-        <div className="w-12 h-12 rounded-full neo-surface flex items-center justify-center text-[#64748B] cursor-pointer neo-surface-hover relative">
-          <Bell size={20} />
-          <span className="absolute top-3 right-3 w-2 h-2 bg-[#EF4444] rounded-full"></span>
-        </div>
-        
-        <div className="w-12 h-12 rounded-full neo-surface flex items-center justify-center text-[#64748B] cursor-pointer neo-surface-hover">
-          <Moon size={20} />
+      {/* Right Side Controls */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* White / Dark Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          aria-label="Toggle White/Dark Mode"
+          title={`Switch to ${theme === 'dark' ? 'White' : 'Dark'} Mode`}
+          className="w-10 h-10 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer"
+        >
+          {theme === 'dark' ? (
+            <Sun size={18} className="text-amber-400" />
+          ) : (
+            <Moon size={18} className="text-slate-600" />
+          )}
+        </button>
+
+        {/* Notifications */}
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer relative">
+          <Bell size={18} />
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
         </div>
 
-        <div className="flex items-center gap-4 cursor-pointer pl-2">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#172554] to-[#52658F] text-white flex items-center justify-center font-bold shadow-lg">
+        {/* User Profile */}
+        <div className="flex items-center gap-3 cursor-pointer pl-1">
+          <div className="w-10 h-10 rounded-xl bg-[#172554] dark:bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
             RK
           </div>
-          <div className="hidden md:block">
-            <p className="text-sm font-bold text-[#172554]">Ruthvik K.</p>
-            <p className="text-xs text-[#64748B] font-medium">Claims Analyst</p>
+          <div className="hidden sm:block">
+            <p className="text-xs font-bold text-[var(--color-text-primary)] leading-tight">Ruthvik K.</p>
+            <p className="text-[11px] text-[var(--color-text-secondary)]">Claims Analyst</p>
           </div>
-          <ChevronDown size={16} className="text-[#64748B] hidden md:block" />
+          <ChevronDown size={14} className="text-[var(--color-text-secondary)] hidden sm:block" />
         </div>
       </div>
     </header>
   );
 };
+

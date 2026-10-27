@@ -69,61 +69,76 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
   };
 
   return (
-    <div className="neo-surface p-8 h-full flex flex-col">
-      <div className="flex justify-between items-start mb-8">
+    <div className="neo-surface p-6 sm:p-8 h-full flex flex-col border border-[var(--color-border)]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[var(--color-border)]">
         <div>
-          <h2 className="text-2xl font-bold text-[#172554] mb-1">Claim Details</h2>
-          <p className="text-[#64748B] text-sm">Enter the claim information to analyze</p>
+          <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Claim Triage Details</h2>
+          <p className="text-[var(--color-text-secondary)] text-xs mt-0.5">Enter patient, provider, and clinical parameters for fraud evaluation</p>
         </div>
-        <button type="button" onClick={handleFillSample} className="neo-btn-secondary py-2 px-4 text-sm font-bold bg-[#FACC15]/20 text-[#172554] border border-[#FACC15]/50 hover:bg-[#FACC15]/30 transition-all">
-          Fill Sample
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            type="button" 
+            onClick={handleFillSample} 
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 transition-colors cursor-pointer"
+          >
+            Sample Anomaly
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col h-full">
-        <div className="flex-1 mb-6">
+        <div className="flex-1 space-y-6">
           
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-[#172554] uppercase tracking-wider mb-4 pb-2 border-b border-[#172554]/10">Financial & Dates</h3>
-            <div className="grid grid-cols-2 gap-6">
+          {/* Section 1: Financial & Dates */}
+          <div>
+            <h3 className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-3 pb-1 border-b border-[var(--color-border)]">
+              Financial & Admission Schedule
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Claim Amount (₹)</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Claim Amount (₹)</label>
                 <input type="number" name="claim_amount" value={formData.claim_amount} onChange={handleChange} className="neo-input" placeholder="e.g. 125000" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Service Date</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Service Date</label>
                 <input type="date" name="service_date" value={formData.service_date} onChange={handleChange} className="neo-input" required />
               </div>
             </div>
           </div>
 
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-[#172554] uppercase tracking-wider mb-4 pb-2 border-b border-[#172554]/10">Medical Information</h3>
-            <div className="grid grid-cols-2 gap-6">
+          {/* Section 2: Medical Information */}
+          <div>
+            <h3 className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-3 pb-1 border-b border-[var(--color-border)]">
+              Clinical & Billing Diagnostics
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Diagnosis Code</label>
-                <input type="text" name="diagnosis_code" value={formData.diagnosis_code} onChange={handleChange} className="neo-input" placeholder="e.g. I10" required />
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Diagnosis Code (ICD-10)</label>
+                <input type="text" name="diagnosis_code" value={formData.diagnosis_code} onChange={handleChange} className="neo-input" placeholder="e.g. I10, E11.9" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Procedure Code</label>
-                <input type="text" name="procedure_code" value={formData.procedure_code} onChange={handleChange} className="neo-input" placeholder="e.g. 99213" required />
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Procedure Code (CPT)</label>
+                <input type="text" name="procedure_code" value={formData.procedure_code} onChange={handleChange} className="neo-input" placeholder="e.g. 99213, 99214" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Number of Procedures</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Number of Procedures</label>
                 <input type="number" name="number_of_procedures" value={formData.number_of_procedures} onChange={handleChange} className="neo-input" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Length of Stay (Days)</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Length of Stay (Days)</label>
                 <input type="number" name="length_of_stay_days" value={formData.length_of_stay_days} onChange={handleChange} className="neo-input" required />
               </div>
             </div>
           </div>
 
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-[#172554] uppercase tracking-wider mb-4 pb-2 border-b border-[#172554]/10">Provider & Service</h3>
-            <div className="grid grid-cols-2 gap-6">
+          {/* Section 3: Provider & Service */}
+          <div>
+            <h3 className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-3 pb-1 border-b border-[var(--color-border)]">
+              Provider & Operational Scope
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Service Type</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Service Type</label>
                 <select name="service_type" value={formData.service_type} onChange={handleChange} className="neo-input">
                   <option value="Inpatient">Inpatient</option>
                   <option value="Outpatient">Outpatient</option>
@@ -133,11 +148,11 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Provider Specialty</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Provider Specialty</label>
                 <input type="text" name="provider_specialty" value={formData.provider_specialty} onChange={handleChange} className="neo-input" placeholder="e.g. Cardiology" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Provider Type</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Provider Type</label>
                 <select name="provider_type" value={formData.provider_type} onChange={handleChange} className="neo-input">
                   <option value="Hospital">Hospital</option>
                   <option value="Clinic">Clinic</option>
@@ -146,17 +161,20 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Distance (Miles)</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Distance to Patient (Miles)</label>
                 <input type="number" name="provider_patient_distance_miles" value={formData.provider_patient_distance_miles} onChange={handleChange} className="neo-input" required />
               </div>
             </div>
           </div>
 
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-[#172554] uppercase tracking-wider mb-4 pb-2 border-b border-[#172554]/10">Admission & History</h3>
-            <div className="grid grid-cols-2 gap-6">
+          {/* Section 4: History & Adjudication */}
+          <div>
+            <h3 className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-3 pb-1 border-b border-[var(--color-border)]">
+              Historical Frequency & Adjudication
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Admission Type</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Admission Type</label>
                 <select name="admission_type" value={formData.admission_type} onChange={handleChange} className="neo-input">
                   <option value="Emergency">Emergency</option>
                   <option value="Urgent">Urgent</option>
@@ -164,7 +182,7 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Discharge Type</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Discharge Disposition</label>
                 <select name="discharge_type" value={formData.discharge_type} onChange={handleChange} className="neo-input">
                   <option value="Home">Home</option>
                   <option value="Transfer">Transfer</option>
@@ -172,18 +190,18 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Patient Previous Claims</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Patient Prior Claims</label>
                 <input type="number" name="previous_claims_patient" value={formData.previous_claims_patient} onChange={handleChange} className="neo-input" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Provider Previous Claims</label>
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Provider Prior Claims</label>
                 <input type="number" name="previous_claims_provider" value={formData.previous_claims_provider} onChange={handleChange} className="neo-input" required />
               </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-[#64748B] mb-2">Claim Submitted Late?</label>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5">Claim Submitted Late?</label>
                 <select name="claim_submitted_late" value={formData.claim_submitted_late} onChange={handleChange} className="neo-input">
-                  <option value="false">No</option>
-                  <option value="true">Yes</option>
+                  <option value="false">No (Timely Filing)</option>
+                  <option value="true">Yes (Late Submission Flag)</option>
                 </select>
               </div>
             </div>
@@ -191,15 +209,16 @@ export const ClaimForm: React.FC<ClaimFormProps> = ({ onSubmit, isAnalyzing }) =
           
         </div>
 
-        <div className="flex gap-4 pt-4 border-t border-[#172554]/10">
+        <div className="flex gap-3 pt-6 mt-6 border-t border-[var(--color-border)]">
           <button type="button" onClick={() => setFormData(initialState)} className="neo-btn-secondary flex-1">
-            <RefreshCw size={18} /> Reset
+            <RefreshCw size={15} /> Reset Form
           </button>
           <button type="submit" disabled={isAnalyzing} className="neo-btn-primary flex-[2]">
-            <Sparkles size={18} /> {isAnalyzing ? 'Analyzing...' : 'Analyze Claim ✦'}
+            <Sparkles size={15} /> {isAnalyzing ? 'Running ML & AI Assessment...' : 'Run Fraud Audit ✦'}
           </button>
         </div>
       </form>
     </div>
   );
 };
+

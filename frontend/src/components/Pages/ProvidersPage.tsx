@@ -92,7 +92,7 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Search and Filters */}
-      <div className="neo-surface p-4 border border-white/70 flex flex-col md:flex-row items-center gap-3">
+      <div className="neo-surface p-4 border border-[var(--color-border)] flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
@@ -100,7 +100,7 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search provider name, NPI/ID, hospital, or city..."
-            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] text-xs font-medium text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -109,7 +109,7 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
           <select
             value={specialtyFilter}
             onChange={(e) => setSpecialtyFilter(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
           >
             <option value="ALL">All Specialties</option>
             {specialties.map((s, idx) => (
@@ -120,7 +120,7 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
           <select
             value={riskFilter}
             onChange={(e) => setRiskFilter(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
           >
             <option value="ALL">All Risk Tiers</option>
             <option value="Elevated">Elevated Signal</option>
@@ -131,10 +131,10 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Provider Directory Table */}
-      <div className="neo-surface p-5 border border-white/70">
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="neo-surface p-5 border border-[var(--color-border)]">
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100/90 text-[#64748B] uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">
+            <thead className="bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] uppercase font-bold text-[10px] tracking-wider border-b border-[var(--color-border)]">
               <tr>
                 <th className="p-3.5">Provider ID</th>
                 <th className="p-3.5">Physician / Lead</th>
@@ -147,51 +147,47 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
                 <th className="p-3.5 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white font-medium">
+            <tbody className="divide-y divide-[var(--color-border)] bg-[var(--color-surface)] font-medium">
               {filteredProviders.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3.5 font-bold text-[#172554]">
-                    <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-[11px]">{p.provider_id}</span>
+                <tr key={p.id} className="hover:bg-[var(--color-surface-hover)] transition-colors">
+                  <td className="p-3.5 font-bold text-[var(--color-text-primary)]">
+                    <span className="font-mono bg-[var(--color-surface-hover)] px-2 py-0.5 rounded text-[11px] border border-[var(--color-border)]">{p.provider_id}</span>
                   </td>
-                  <td className="p-3.5 text-slate-800">
+                  <td className="p-3.5 text-[var(--color-text-primary)]">
                     <span className="font-semibold block">{p.name}</span>
-                    <span className="text-[10px] text-slate-400">{p.type}</span>
+                    <span className="text-[10px] text-[var(--color-text-secondary)]">{p.type}</span>
                   </td>
-                  <td className="p-3.5 text-slate-700">
-                    <span className="font-semibold block">{p.facility_name}</span>
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <MapPin size={10} /> {p.city}, {p.state}
-                    </span>
+                  <td className="p-3.5 text-[var(--color-text-primary)]">
+                    <span className="font-medium block">{p.facility_name}</span>
+                    <span className="text-[10px] text-[var(--color-text-secondary)]">{p.city}, {p.state}</span>
                   </td>
-                  <td className="p-3.5 text-slate-700">
-                    <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[11px] font-medium">
-                      <Stethoscope size={11} /> {p.specialty}
-                    </span>
+                  <td className="p-3.5 text-[var(--color-text-primary)] font-medium">
+                    {p.specialty}
                   </td>
-                  <td className="p-3.5 text-center font-bold text-slate-700">
+                  <td className="p-3.5 text-center font-bold text-[var(--color-text-primary)] font-mono">
                     {p.total_claims}
                   </td>
                   <td className="p-3.5 text-center">
-                    <span className={`inline-flex px-2 py-0.5 rounded font-bold text-xs ${
-                      p.anomaly_rate > 14 
-                        ? 'bg-red-100 text-red-700' 
-                        : p.anomaly_rate > 8 
-                        ? 'bg-amber-100 text-amber-700' 
-                        : 'bg-emerald-100 text-emerald-700'
+                    <span className={`inline-flex px-2 py-0.5 rounded font-bold text-xs font-mono border ${
+                      p.fraud_rate > 20 
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' 
+                        : p.fraud_rate > 10 
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                     }`}>
-                      {p.anomaly_rate}% ({p.flagged_claims})
+                      {p.fraud_rate}%
                     </span>
                   </td>
-                  <td className="p-3.5 text-right font-bold text-[#172554]">
-                    ${p.avg_claim_amount.toLocaleString()}
+                  <td className="p-3.5 text-right font-bold text-[var(--color-text-primary)] font-mono">
+                    ₹{p.avg_claim_amount.toLocaleString()}
                   </td>
                   <td className="p-3.5 text-center">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold border ${
                       p.risk_level === 'Elevated'
-                        ? 'bg-red-50 text-red-700 border-red-200'
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
                         : p.risk_level === 'Moderate'
-                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                     }`}>
                       {p.risk_level}
                     </span>
@@ -199,7 +195,7 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
                   <td className="p-3.5 text-center">
                     <button
                       onClick={() => setSelectedProvider(p)}
-                      className="inline-flex items-center gap-1 bg-slate-100 hover:bg-[#172554] hover:text-white text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1 bg-[var(--color-surface-hover)] hover:bg-[#172554] dark:hover:bg-blue-600 hover:text-white text-[var(--color-text-primary)] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border border-[var(--color-border)]"
                     >
                       <Eye size={12} />
                       <span>Profile</span>
@@ -214,12 +210,12 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ onNavigate }) => {
 
       {/* Provider Details Modal */}
       {selectedProvider && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative border border-slate-200 animate-fadeIn">
-            <div className="flex items-start justify-between pb-4 border-b border-slate-200">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--color-surface)] text-[var(--color-text-primary)] rounded-xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-lg p-6 relative border border-[var(--color-border)] animate-fadeIn">
+            <div className="flex items-start justify-between pb-4 border-b border-[var(--color-border)]">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-[#172554]">
+                  <span className="font-mono text-xs font-bold bg-[var(--color-surface-hover)] px-2 py-0.5 rounded text-[var(--color-text-primary)]">
                     {selectedProvider.provider_id}
                   </span>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${

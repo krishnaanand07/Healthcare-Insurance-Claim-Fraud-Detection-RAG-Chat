@@ -94,7 +94,7 @@ export const AIInvestigation: React.FC<AIInvestigationProps> = ({ data, claimPay
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl backdrop-blur-md border border-white/20">
+          <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl border border-white/20">
             <div className="text-right">
               <div className="text-[10px] uppercase font-bold text-[#FACC15]">Fraud Risk Score</div>
               <div className="text-3xl font-black">{probPercent}%</div>
