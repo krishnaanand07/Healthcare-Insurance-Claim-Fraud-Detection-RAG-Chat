@@ -57,6 +57,8 @@ An enterprise-grade, end-to-end healthcare claim fraud risk assessment and AI in
 - **RAG-Grounded Medical Evidence**: Ingests domain knowledge across medical billing standards, CPT and ICD-10 coding guidelines, upcoding/unbundling indicators, and provider anomaly patterns to ground every finding with verifiable references.
 - **High-Resilience Multi-LLM Router**: Automatically cascades through Groq (`openai/gpt-oss-20b`), Google Gemini (`gemini-3.5-flash-lite`), and NVIDIA Hosted NIM (`meta/llama-3.2-11b-vision-instruct`). If all external LLM APIs fail or time out, a built-in deterministic rule engine produces a complete, structured investigation report.
 - **Interactive Investigation Assistant (Chat)**: Stateful, RAG-grounded conversational assistant (`/api/ai/chat`) enabling claims adjudicators to interrogate specific risk factors, verify code discrepancies, and query billing protocols.
+- **Comprehensive Multi-Page Dashboard**: Full 6-view suite including Overview Dashboard, Claim Adjudication & Evaluation, Claim History & Auditing, Provider Network Oversight, Advanced Fraud Analytics, and Executive Regulatory Reports.
+- **Light / Dark Mode Theme System**: Integrated `ThemeContext` offering persistent dynamic styling, contrast-optimized dark modes, glassmorphism UI treatments, and sleek responsive topbar controls.
 - **Claims Persistence & Dashboard Analytics**: SQLite database managed via SQLAlchemy ORM for logging claims and reviewing historical aggregate metrics (`/api/analyze/dashboard`).
 - **Memory-Safe Cloud Footprint**: Custom in-memory TF-IDF retrieval pipeline designed specifically to operate stably within strict memory constraints (135 MiB RSS under a 512 MiB limit) without sacrificing retrieval relevance.
 
@@ -268,7 +270,14 @@ The following metrics reflect verified measurements obtained during deployment t
 You can explore the live, fully interactive interface at [https://healthcare-insurance-claim-fraud-de-six.vercel.app](https://healthcare-insurance-claim-fraud-de-six.vercel.app/).
 
 The dashboard incorporates:
-- **Interactive Claim Form**: Pre-populated clinical templates with options for custom patient, billing, and provider inputs.
+- **Navigation & Views**:
+  - **Overview Dashboard**: High-level KPIs, fraud risk distribution, financial exposure charts, and recent activity feed.
+  - **Claim Adjudication & Evaluation**: Pre-populated clinical templates with options for custom patient, billing, and provider inputs, paired with dual-engine prediction and RAG investigation.
+  - **Claim History & Auditing**: Filterable and searchable registry of processed claims with status indicators and quick-review actions.
+  - **Provider Network Oversight**: Specialty-based fraud distribution, provider risk profiling, and flag management.
+  - **Fraud Analytics**: Temporal trend tracking, code anomaly heatmaps, and financial exposure estimations.
+  - **Executive Reports**: Formatted compliance summaries, risk breakdowns, and exportable findings for stakeholders.
+- **Theme Modes**: Seamless Dark / Light mode switching with persistent local storage preferences.
 - **Dynamic Risk Gauge**: Visual indicators showing fraud probability and classification level (`LOW`, `MEDIUM`, `HIGH`).
 - **Clinical & Financial Risk Factors**: Categorized cards detailing anomaly drivers (e.g., length of stay mismatches, billing discrepancies).
 - **Evidence Sources**: Transparent source citations referencing medical guidelines and billing codes.
@@ -342,12 +351,15 @@ Healthcare-Insurance-Claim-Fraud-Detection/
 │   │   │   ├── AIInvestigation/             # Investigation cards, chat, and evidence
 │   │   │   ├── Analysis/                    # Claims analysis visualizations
 │   │   │   ├── ClaimForm/                   # Interactive claim input form
-│   │   │   └── Layout/                      # Sidebar and header layout components
-│   │   ├── App.tsx                          # Root application and parallel dispatch
-│   │   ├── index.css                        # Tailwind CSS styles and custom classes
+│   │   │   ├── Layout/                      # Sidebar and TopBar layout components
+│   │   │   └── Pages/                       # Full page views (Dashboard, History, Providers, etc.)
+│   │   ├── context/                         # Context providers
+│   │   │   └── ThemeContext.tsx             # Dark / Light theme provider & hook
+│   │   ├── App.tsx                          # Root application and page routing
+│   │   ├── index.css                        # Tailwind CSS styles and theme CSS variables
 │   │   └── main.tsx                         # React application entry point
 │   ├── package.json                         # Frontend dependencies and scripts
-│   ├── tailwind.config.js                   # Tailwind CSS configuration
+│   ├── tailwind.config.js                   # Tailwind CSS configuration with dark mode support
 │   ├── tsconfig.json                        # TypeScript compiler configuration
 │   └── vite.config.ts                       # Vite build configuration
 ├── render.yaml                              # Render Blueprint deployment configuration
